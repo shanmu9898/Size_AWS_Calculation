@@ -18,7 +18,11 @@ def get_size(bucket, prefix, date, regex):
         start_date = timezone.localize(datetime.datetime.combine(date_obj, datetime.time.min)).isoformat()
 
     paginator = s3.get_paginator('list_objects')
-    objects = paginator.paginate(Bucket=bucket, Prefix=prefix)
+    if prefix:
+        objects = paginator.paginate(Bucket=bucket, Prefix=prefix)
+    else:
+        objects = paginator.paginate(Bucket=bucket)
+
 
     # Calculate the total size of all objects
     total_size = 0
@@ -39,7 +43,7 @@ def get_size(bucket, prefix, date, regex):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--bucket", default="my-bucket-name", help="S3 bucket name")
-    parser.add_argument("--folder", required=True, help="Folder name inside S3 bucket")
+    parser.add_argument("--folder", help="Folder name inside S3 bucket")
     parser.add_argument("--date", help="Last modified date of the files in format 'YYYY-MM-DD'")
     parser.add_argument("--regex", default="", help="Regex to filter for specific files")
     args = parser.parse_args()
