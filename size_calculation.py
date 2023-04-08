@@ -1,8 +1,9 @@
 import datetime
 import boto3
 import pytz
+import re
 
-def get_size(bucket, prefix, date):
+def get_size(bucket, prefix, date, regex):
     s3 = boto3.client('s3')
     s3_resource = boto3.resource('s3')
 
@@ -20,7 +21,8 @@ def get_size(bucket, prefix, date):
     # Calculate the total size of all objects
     total_size = 0
     for obj in objects['Contents']:
-        if obj['LastModified'].strftime('%Y-%m-%d') == date:
+        if obj['LastModified'].strftime('%Y-%m-%d') == date and re.match(regex, obj['Key']):
+            print(f"File being added {obj['Key']}")
             total_size += obj['Size']
 
     return total_size
@@ -28,9 +30,16 @@ def get_size(bucket, prefix, date):
 
 def main():
     bucket_name = 'mktestvimo'
-    folder_name = 'Test/20170227195450'
-    date = '2017-02-27'
-    total_size = get_size(bucket_name, folder_name, date)
+    # Prompt user for folder_name if not set
+    folder_name = input('Enter folder name: ') or 'Test'
+    print(f"Setting folder_name {folder_name}")
+    # Prompt user for date if not set
+    date = input('Enter date in YYYY-MM-DD format: ') or '2016-05-06'
+    print(f"Setting date {date}")
+    # Prompt user for regex if not set
+    regex = input('Enter regular expression to filter files: ') or r'.*\.json'
+    print(f"Setting regex {folder_name}")
+    total_size = get_size(bucket_name, folder_name, date, regex)
 
     print(f'Total file size: {total_size} bytes')
 
